@@ -3,18 +3,52 @@
 
 ## Loading and preprocessing the data
 
-
+```{r}
+setwd("~/datasciencecoursera/represearch/RepData_PeerAssessment1")
+data<- read.csv("activity.csv",header = T)
+```
 
 ## What is mean total number of steps taken per day?
-
+```{r mean}
+subdata<- aggregate(steps ~ date, data, sum)
+hist(subdata$steps, breaks = 20,xlab = "Steps",
+     ylab = "Counts",main = "Histogram of Steps") 
+#mean
+mean(subdata$steps)
+#median
+median(subdata$steps)
+```
 
 
 ## What is the average daily activity pattern?
-
+```{r daily}
+subdata2<- aggregate(steps ~ interval, data, mean)
+plot(subdata2$interval,subdata2$steps,type="l"
+     ,xlab="Interval",ylab="Avg Steps taken",main = "Time-Series Plot")
+subdata2[subdata2$steps==max(subdata2$steps),]
+```
 
 
 ## Imputing missing values
-
+```{r impute}
+nrow(data[is.na(data$steps)==TRUE,])
+#imputinig strategy
+# impute with mean value of steps
+library(Hmisc)
+data_new<-data
+data_new$steps <- with(data_new, impute(steps, mean))
+subdata<- aggregate(steps ~ date, data_new, sum)
+hist(subdata$steps, breaks = 20,xlab = "Steps",
+     ylab = "Counts",main = "New Histogram of Steps after imputing") 
+mean(subdata$steps)
+median(subdata$steps)
+```
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+```{r weekday}
+#create factor variable
+data$date<-with(data,weekdays(as.Date(data$date)) %in% c('Sunday','Saturday'))
+#create plot
+xyplot(steps ~ interval | date, data = data, layout = c(1, 2),type = "l",strip=strip.custom(factor.levels=c("WEEKEND","WEEKDAY")))
+```
